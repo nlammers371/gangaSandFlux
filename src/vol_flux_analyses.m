@@ -19,9 +19,10 @@ height_fun = @(x) x(1) * area_ref_vec ./ (x(2) + area_ref_vec);
 max_obs_height = max(pointTable.area);
 % make filter for points that are in the relevant range
 rel_area_filter = area_ref_vec <=max_obs_height;
-
+% make new height field
+infoTable.height_35 = infoTable.height_30*tand(35)/tand(30);
 height_fit_struct = struct;
-angle_rep_vec = [20 25 30];
+angle_rep_vec = [25 30 35];
 area_index = linspace(min(area_ref_vec),2*max(area_ref_vec));
 
 for a = 1:length(angle_rep_vec)
@@ -119,18 +120,18 @@ for a = 1:length(angle_rep_vec)
         repo_footprint_filter = footprint_flag_vec == 1 & repo_id_vec == repo_id_index(r);    
 
         % calculate the expected maximum height
-        sa_input = mean(area_vec(repo_footprint_filter));
+%         sa_input = mean(area_vec(repo_footprint_filter));
 
         % extract footprint and calculate total volume    
         xfp = x_shifted(repo_footprint_filter);
         yfp = y_shifted(repo_footprint_filter);
 
        [height_array, dist_array, repo_mask, x_bounds, y_bounds,max_height_vals] = ...
-                      vol_calculations(xfp,yfp,height_fit_struct(a),sa_input,[],[],n_boots,[]);
-
+                      vol_calculations(xfp,yfp,height_fit_struct(a),[],[],[],n_boots,[]);
+%         (x_vec,y_vec,fit_struct,x_bounds,y_bounds,SA,n_boots, max_height_vals)    
         vol_fp_vec(:,r) = reshape(sum(sum(height_array,1),2),[],1);
         sa_fp_vec(r) = sum(repo_mask(:));
-
+        
         % record repo info
         repo_flux_struct(r).sa_array = repo_mask;
         repo_flux_struct(r).repo_dist_array = dist_array;
@@ -156,7 +157,7 @@ for a = 1:length(angle_rep_vec)
 
                 % calculate volume
                 [height_array_dt, dist_array_dt, repo_mask_dt] = ...
-                      vol_calculations(xdt,ydt,height_fit_struct(a),sa_input,x_bounds,y_bounds,n_boots,max_height_vals); 
+                      vol_calculations(xdt,ydt,height_fit_struct(a),x_bounds,y_bounds,sa_fp_vec(r),n_boots,max_height_vals); 
 
                 % record
                 vol_flux_array(d,r,:) = sum(sum(height_array_dt,1),2);

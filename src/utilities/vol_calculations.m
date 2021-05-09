@@ -1,5 +1,5 @@
 function [height_array, dist_array, repo_mask, x_bounds, y_bounds, max_height_vals] = ...
-        vol_calculations(x_vec,y_vec,fit_struct,SA,x_bounds,y_bounds,n_boots, max_height_vals)    
+        vol_calculations(x_vec,y_vec,fit_struct,x_bounds,y_bounds,SA,n_boots, max_height_vals)    
                   
     % extract values
     angle_of_repose = fit_struct.angle_rep;    
@@ -19,9 +19,11 @@ function [height_array, dist_array, repo_mask, x_bounds, y_bounds, max_height_va
     xm = x_bounds(2)-x_bounds(1);
     ym = y_bounds(2)-y_bounds(1);
     
-    % generate region mask 
+    % generate region mask     
     repo_mask = poly2mask(1e1 + xre, 1e1 + yre,2e1+round(ym),2e1+round(xm));
-    
+    if isempty(SA)
+        SA = sum(repo_mask(:));
+    end
     % generate distance map
     dist_array = bwdist(~repo_mask);
     
@@ -35,8 +37,7 @@ function [height_array, dist_array, repo_mask, x_bounds, y_bounds, max_height_va
         max_height_vals = random(height_dist,1,n_boots);
     end
     
-    % calculate repo capacity
-    
+    % calculate repo capacity   
     height_array = zeros(size(dist_array,1),size(dist_array,2),n_boots);
     for n = 1:n_boots
         dist_to_top = max_height_vals(n)/tand(angle_of_repose);
