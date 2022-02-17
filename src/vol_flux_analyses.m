@@ -17,8 +17,10 @@ infoTable = readtable([DataPath RefName]);
 area_ref_vec = infoTable.base_area;
 height_fun = @(x) x(1) * area_ref_vec ./ (x(2) + area_ref_vec);
 max_obs_height = max(pointTable.area);
+
 % make filter for points that are in the relevant range
 rel_area_filter = area_ref_vec <=max_obs_height;
+
 % make new height field
 infoTable.height_35 = infoTable.height_30*tand(35)/tand(30);
 height_fit_struct = struct;
@@ -26,17 +28,25 @@ angle_rep_vec = [25 30 35];
 area_index = linspace(min(area_ref_vec),2*max(area_ref_vec));
 
 for a = 1:length(angle_rep_vec)
-    eval(['ob_fun = @(x) infoTable.height_' num2str(angle_rep_vec(a)) '- height_fun(x);'])
-    [x_fit,~,resid] = lsqnonlin(ob_fun,[10 1e4],[0 0],[50,Inf]);    
+  
+    eval(['h_vec = infoTable.height_' num2str(angle_rep_vec(a)) ';']);
+    ob_fun = @(x) h_vec - height_fun(x);
+    [x_fit,resnorm,resid] = lsqnonlin(ob_fun,[10 1e4],[0 0],[50,Inf]);    
     height_fit_struct(a).x_fit = x_fit;
     height_fit_struct(a).angle_rep = angle_rep_vec(a);
+    height_fit_struct(a).resnorm = resnorm;
     height_fit_struct(a).mdl_se = sqrt(sum(resid(rel_area_filter).^2)/sum(rel_area_filter));
     height_fit_struct(a).max_height_vec = x_fit(1).*area_index./(x_fit(2) + area_index);
+    
+    %%% calculate R^2
+    RSS = sum(resid.^2);
+    TSS = sum((h_vec-mean(h_vec)).^2);
+    height_fit_struct(a).RS = 1 - RSS/TSS;
 end    
     
 save([OutPath 'height_fit_struct.mat'],'height_fit_struct')
 
-% extract vectors
+%% extract vectors
 x_vec = pointTable.POINT_X;
 y_vec = pointTable.POINT_Y;
 area_vec = pointTable.area;
