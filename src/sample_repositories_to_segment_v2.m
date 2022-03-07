@@ -64,10 +64,10 @@ for i = 1:length(NameIndexRaw)
 end
 toc
 % initialize new structure
+repo_id_vec = refTable.ORIG_FID(ia);
 [NameIndexClean,map_to] = unique(NameIndexClean);
 NameIndexRaw1 = NameIndexRaw(map_to);
-
-RepoTable.RepoNames = NameIndexClean;
+repo_id_vec = repo_id_vec(map_to);
 
 % now parse the names
 regionCell = cell(size(NameIndexClean));
@@ -85,9 +85,7 @@ for i = 1:length(NameIndexClean)
     regionCell{i} = name(1:underscores(1)-1);
     % extract date
     dateStringCell{i} = name(underscores(1)+1:underscores(2)-1);
-%     dt = datetime(date_string,'InputFormat','MMddyyyy');
-%     dateVec(i) = dt;
-    % repo sub ID
+
     subIDVec(i) = str2double(name(underscores(2)+1:underscores(3)-1));
     % add concatenated repo ID field
     repoCell{i} = [name(1:underscores(1)-1) name(underscores(2)+1:underscores(3)-1)];
@@ -104,6 +102,17 @@ toc
 % Now generate vector of region IDs and a master ID vector
 % dateNumVec = datenum(dateVec);
 [region_id_index, ~, region_id_vec] = unique(regionCell);
+
+% generate key table
+key_table.names_clean = NameIndexClean;
+key_table.names_raw = NameIndexRaw1;
+key_table.region_id = region_id_vec;
+key_table.rep_id = repo_id_vec;
+key_table.date_num = dateNumVec;
+key_table = struct2table(key_table);
+
+writetable(key_table,[OutDir 'key_table.csv'])
+%%
 
 % now get array with unique region-date combinations
 [region_date_array,~,rd_map_vec] = unique([region_id_vec dateNumVec],'rows');

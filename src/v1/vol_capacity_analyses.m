@@ -23,6 +23,7 @@ for f = 1:length(RepFootprintFiles)
     % extract vectors
     x_vec = footprintTable.POINT_X;
     y_vec = footprintTable.POINT_Y;
+    
 %     area_vec = footprintTable.area;
     repo_id_vec = footprintTable.ORIG_FID;
     repo_id_index = unique(repo_id_vec);
